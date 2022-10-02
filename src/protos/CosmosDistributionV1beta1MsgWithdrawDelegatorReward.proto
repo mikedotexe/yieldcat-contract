@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+/* This is taken from:
+ * https://github.com/cosmos/cosmos-sdk/blob/5deb137f7a83506381472928d898cd823735aade/proto/cosmos/distribution/v1beta1/tx.proto#L66-L74
+ * With the annotations removed */
+
+message MsgWithdrawDelegatorReward {
+  string delegator_address = 1;
+  string validator_address = 2;
+}
