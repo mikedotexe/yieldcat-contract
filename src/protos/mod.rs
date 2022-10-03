@@ -1,0 +1,1 @@
+pub mod CosmosDistributionV1beta1MsgWithdrawDelegatorReward;

@@ -11,4 +11,4 @@ else
 fi
 
 INIT='{"allowed": ["juno1gvc0l4upc88arx673tmg7u3g7zsssnyyle5ph5"]}'
-junod tx wasm instantiate "$CODE_ID" "$INIT" --label "yieldcat" --from mikereg --node https://rpc.uni.juno.deuslabs.fi:443 --chain-id uni-5 --gas-prices 0.025ujunox --gas auto --gas-adjustment 1.3 --output json -b block --no-admin -y
+junod tx wasm instantiate "$CODE_ID" "$INIT" --label "yieldcat" --from mikereg --node https://rpc-juno.itastakers.com:443 --chain-id juno-1 --gas-prices 0.025ujuno --gas auto --gas-adjustment 1.3 --output json -b block --no-admin -y

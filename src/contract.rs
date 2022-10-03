@@ -1,14 +1,19 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Addr, Api, Binary, Deps, DepsMut, DistributionMsg, Env, MessageInfo, Response,
-    StakingMsg, StdResult, Uint64,
+    to_binary, Addr, Api, Binary, CosmosMsg, Deps, DepsMut, DistributionMsg, Env, MessageInfo,
+    Response, StakingMsg, StdResult, Uint64, WasmMsg,
 };
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::CONFIG;
+use crate::state::{Config, CONFIG};
+use protobuf::Message;
+// Get the protobuf file we care about
+include!("protos/mod.rs");
+// include!("/protos/mod.rs");
+use CosmosDistributionV1beta1MsgWithdrawDelegatorReward::MsgWithdrawDelegatorReward;
 
 // Version info for migration (boilerplate stuff)
 const CONTRACT_NAME: &str = "crates.io:cw-yieldcat";
@@ -41,10 +46,11 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    let mut config = CONFIG.load(deps.storage)?;
     // Validate that they sent us good addresses
-    config.allowed = map_validate(deps.api, &msg.allowed)?;
-    config.granter = info.sender;
+    let mut config = Config {
+        granter: info.sender,
+        allowed: map_validate(deps.api, &msg.allowed)?,
+    };
 
     // This sets the version, imported from cw2, just a normal thing to do
     // Boilerplate, don't worry about it
@@ -88,21 +94,39 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn execute_withdraw_rewards(
     deps: DepsMut,
-    info: MessageInfo,
+    _info: MessageInfo,
     validator_address: String,
 ) -> Result<Response, ContractError> {
     // The question mark here and other places means,
     // "throw the error programmed behind the scenes if it fails"
     deps.api.addr_validate(&validator_address)?;
+    let config = CONFIG.load(deps.storage)?;
+
+    /*
+    Typically you'd create a message like below, but we can't cuz it doesn't
+    allow us to set the delegator_address
 
     let withdrawMsg = DistributionMsg::WithdrawDelegatorReward {
         validator: validator_address,
+    };
+    */
+
+    // Create lower-level withdraw message using the protobuf stuffs
+    let mut withdraw_msg = MsgWithdrawDelegatorReward::new();
+    withdraw_msg.delegator_address = config.granter.to_string();
+    withdraw_msg.validator_address = validator_address;
+
+    let withdraw_msg_bytes: Vec<u8> = withdraw_msg.write_to_bytes().unwrap();
+
+    let final_msg: CosmosMsg = CosmosMsg::Stargate {
+        type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward".to_string(),
+        value: Binary::from(withdraw_msg_bytes),
     };
 
     Ok(Response::new()
         .add_attribute("contract", "demo-totals")
         .add_attribute("method", "execute_withdraw_rewards")
-        .add_message(withdrawMsg))
+        .add_message(final_msg))
 }
 
 pub fn execute_delegate_rewards(

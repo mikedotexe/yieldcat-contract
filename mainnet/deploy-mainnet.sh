@@ -1,0 +1,2 @@
+#!/bin/bash
+junod tx wasm store ../target/wasm32-unknown-unknown/release/yieldcat.wasm --from juno1yhqft6d2msmzpugdjtawsgdlwvgq3samrm5wrw --node https://rpc-juno.itastakers.com:443 --chain-id juno-1 --gas-prices 0.025ujuno --gas auto --gas-adjustment 1.3 --output json -b block -y
