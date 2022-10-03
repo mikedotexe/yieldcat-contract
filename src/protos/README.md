@@ -33,3 +33,12 @@ fn main() {
         .run_from_script();
 }
 ```
+
+Then in that project run:
+
+    cargo build
+
+and you'll see this new file:
+`rust-protobuf-example/target/debug/build/rust-protobuf-example-26ee9cb57adda940/out/protos/CosmosDistributionV1beta1MsgWithdrawDelegatorReward.rs`
+
+I copied that file into the directory where this file is, and we include it in our `contract.rs` file.
